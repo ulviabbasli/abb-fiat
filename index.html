@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Binance ↔ ABB Mobile Flow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bnb-bg: #181A20;
+      --bnb-card: #232730;
+      --bnb-card-hover: #2B3139;
+      --bnb-yellow: #FCD535;
+      --bnb-text: #EAECEF;
+      --bnb-muted: #848E9C;
+      --bnb-green: #0ECB81;
+
+      --abb-bg: #F2F4F8;
+      --abb-card: #FFFFFF;
+      --abb-blue: #1B63F2;
+      --abb-light-blue: #2B95FF;
+      --abb-text: #111827;
+      --abb-muted: #6B7280;
+      --abb-green: #22C55E;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0b0e14;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    /* App Wrapper: Full screen on mobile, centered mobile column on desktop */
+    .mobile-app-shell {
+      width: 100%;
+      max-width: 430px;
+      height: 100dvh;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      background: var(--bnb-bg);
+      position: relative;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Top Mode Switcher (Deposit | Withdraw) */
+    .mode-switcher-bar {
+      background: #11141a;
+      padding: 8px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+      z-index: 50;
+    }
+
+    .mode-btn {
+      flex: 1;
+      height: 38px;
+      border-radius: 9px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: #1b2029;
+      color: #94a3b8;
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .mode-btn.active-deposit {
+      background: var(--bnb-yellow);
+      color: #181A20;
+      border-color: var(--bnb-yellow);
+    }
+
+    .mode-btn.active-withdraw {
+      background: var(--abb-light-blue);
+      color: #ffffff;
+      border-color: var(--abb-light-blue);
+    }
+
+    /* Dynamic Screen Container */
+    .phone-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .phone-screen.theme-bnb {
+      background: var(--bnb-bg);
+      color: var(--bnb-text);
+    }
+
+    .phone-screen.theme-abb {
+      background: var(--abb-bg);
+      color: var(--abb-text);
+    }
+
+    /* ABB Logo Badge: Light Blue Background with White "ABB" Text */
+    .abb-logo-badge {
+      background: var(--abb-light-blue);
+      color: #ffffff;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: 0.03em;
+      flex-shrink: 0;
+    }
+
+    .abb-logo-badge.size-sm {
+      padding: 4px 11px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    .abb-logo-badge.size-md {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      font-size: 12px;
+    }
+
+    .abb-logo-badge.size-lg {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      font-size: 13.5px;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      height: 34px;
+      padding: 8px 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* App Header */
+    .app-header {
+      height: 44px;
+      padding: 0 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .app-back {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      cursor: pointer;
+      font-size: 22px;
+      font-weight: 500;
+    }
+
+    .app-header-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.03em;
+    }
+
+    .app-header-right {
+      font-size: 12.5px;
+      font-weight: 600;
+      opacity: 0.8;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Screen Body & Footer */
+    .screen-body {
+      flex: 1;
+      padding: 10px 18px 14px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .screen-body::-webkit-scrollbar {
+      width: 0px;
+    }
+
+    .screen-footer {
+      padding: 10px 18px 18px;
+      flex-shrink: 0;
+    }
+
+    /* Primary CTA Buttons */
+    .btn-bnb-primary {
+      width: 100%;
+      height: 50px;
+      border-radius: 11px;
+      border: none;
+      background: var(--bnb-yellow);
+      color: #181A20;
+      font-family: inherit;
+      font-size: 15.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-bnb-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-abb-primary {
+      width: 100%;
+      height: 50px;
+      border-radius: 12px;
+      border: none;
+      background: var(--abb-blue);
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 15.5px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(27, 99, 242, 0.25);
+    }
+
+    .btn-abb-primary:active {
+      transform: scale(0.98);
+    }
+
+    /* Red Ring / Circle Highlight on Target Wallet Button */
+    @keyframes pulseRedRing {
+      0%, 100% {
+        box-shadow: 0 0 0 3px #ef4444, 0 0 14px rgba(239, 68, 68, 0.85);
+        transform: scale(1);
+      }
+      50% {
+        box-shadow: 0 0 0 4.5px #ff2e2e, 0 0 22px rgba(239, 68, 68, 1);
+        transform: scale(1.03);
+      }
+    }
+
+    .red-ring-highlight {
+      position: relative;
+      border: 2.5px solid #ef4444 !important;
+      animation: pulseRedRing 1.4s infinite ease-in-out;
+      z-index: 5;
+    }
+
+    .red-ring-highlight::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border: 2.5px solid #ef4444;
+      border-radius: 14px;
+      pointer-events: none;
+    }
+
+    /* Binance UI Elements */
+    .bnb-page-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .bnb-subtitle {
+      font-size: 13px;
+      color: var(--bnb-muted);
+      margin-bottom: 14px;
+    }
+
+    .bnb-section-label {
+      font-size: 12.5px;
+      color: var(--bnb-muted);
+      margin-bottom: 8px;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+
+    .bnb-currency-box {
+      background: var(--bnb-card);
+      border-radius: 11px;
+      padding: 13px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .bnb-method-card {
+      background: var(--bnb-card);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+    }
+
+    .bnb-method-card.selected {
+      border-color: var(--abb-light-blue);
+      background: rgba(43, 149, 255, 0.09);
+    }
+
+    .method-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .method-title-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .badge-recommended {
+      background: var(--abb-light-blue);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .method-desc {
+      font-size: 12px;
+      color: var(--bnb-muted);
+      margin-top: 2px;
+    }
+
+    .radio-circle {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid #5E6673;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .bnb-method-card.selected .radio-circle {
+      border-color: var(--bnb-yellow);
+    }
+
+    .bnb-method-card.selected .radio-circle::after {
+      content: '';
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--bnb-yellow);
+    }
+
+    /* Amount Input Box */
+    .bnb-amount-card {
+      background: var(--bnb-card);
+      border-radius: 12px;
+      padding: 15px 16px;
+      margin-top: 6px;
+      margin-bottom: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .amount-input-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 8px 0 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .amount-input {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-family: inherit;
+      font-size: 30px;
+      font-weight: 700;
+      width: 180px;
+      outline: none;
+    }
+
+    .amount-currency-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: #EAECEF;
+    }
+
+    .amount-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--bnb-muted);
+    }
+
+    .btn-max {
+      background: rgba(43, 149, 255, 0.22);
+      color: #60a5fa;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .bnb-summary-card {
+      background: var(--bnb-card);
+      border-radius: 12px;
+      padding: 15px 16px;
+    }
+
+    .summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    /* ABB Light UI Elements */
+    .abb-white-card {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 20px 16px;
+      box-shadow: 0 4px 18px rgba(17, 24, 39, 0.05);
+      margin-top: 6px;
+    }
+
+    .abb-transfer-logos {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .abb-card-title {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--abb-text);
+    }
+
+    .abb-card-subtitle {
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--abb-muted);
+      margin-top: 4px;
+      margin-bottom: 18px;
+    }
+
+    .abb-divider {
+      height: 1px;
+      background: #E5E7EB;
+      margin: 12px 0;
+    }
+
+    .abb-kv-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      margin: 10px 0;
+    }
+
+    .abb-kv-label {
+      color: var(--abb-muted);
+    }
+
+    .abb-kv-val {
+      color: var(--abb-text);
+      font-weight: 600;
+    }
+
+    .abb-kv-total {
+      font-size: 14.5px;
+      font-weight: 700;
+    }
+
+    .abb-info-box {
+      margin-top: 12px;
+      background: #EFF6FF;
+      border-radius: 10px;
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11.5px;
+      color: #1e40af;
+      line-height: 1.35;
+    }
+
+    /* ABB Card Selection List */
+    .abb-card-select-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #4B5563;
+      margin: 12px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .abb-card-select-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .abb-card-option {
+      border: 1.5px solid #E5E7EB;
+      background: #F9FAFB;
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .abb-card-option.selected {
+      border-color: var(--abb-blue);
+      background: #EFF6FF;
+      box-shadow: 0 2px 8px rgba(27, 99, 242, 0.1);
+    }
+
+    .abb-card-option.insufficient {
+      border-color: #ef4444;
+      background: #FEF2F2;
+    }
+
+    .abb-card-icon {
+      width: 38px;
+      height: 26px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .abb-card-radio {
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      border: 1.8px solid #9CA3AF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 10px;
+      flex-shrink: 0;
+    }
+
+    .abb-card-option.selected .abb-card-radio {
+      border-color: var(--abb-blue);
+    }
+
+    .abb-card-option.selected .abb-card-radio::after {
+      content: '';
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--abb-blue);
+    }
+
+    /* PIN Screen */
+    .pin-dots {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin: 22px 0 26px;
+    }
+
+    .pin-dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      border: 1.8px solid #9CA3AF;
+      background: transparent;
+      transition: all 0.15s ease;
+    }
+
+    .pin-dot.filled {
+      background: var(--abb-blue);
+      border-color: var(--abb-blue);
+      transform: scale(1.15);
+    }
+
+    .keypad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: auto;
+      padding: 0 4px;
+    }
+
+    .key-btn {
+      height: 54px;
+      border-radius: 12px;
+      border: none;
+      background: #ffffff;
+      color: #111827;
+      font-family: inherit;
+      font-size: 21px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .key-btn:active {
+      transform: scale(0.95);
+      background: #D1D5DB;
+    }
+
+    .key-btn.key-ghost {
+      background: transparent;
+      box-shadow: none;
+      font-size: 15px;
+      color: #6B7280;
+    }
+
+    .forgot-pin {
+      text-align: center;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--abb-blue);
+      margin-top: 14px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    /* Success Check Circle */
+    .success-check {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--abb-green);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 4px auto 14px;
+      box-shadow: 0 6px 16px rgba(34, 197, 94, 0.32);
+    }
+
+    /* Binance Wallet Screen */
+    .bnb-balance-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+
+    .badge-24h {
+      background: rgba(14, 203, 129, 0.15);
+      color: var(--bnb-green);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .bnb-total-usd {
+      font-size: 29px;
+      font-weight: 800;
+      color: #fff;
+      margin-top: 4px;
+      letter-spacing: -0.02em;
+    }
+
+    .bnb-total-azn {
+      font-size: 12.5px;
+      color: var(--bnb-muted);
+      margin-top: 2px;
+      margin-bottom: 16px;
+    }
+
+    .bnb-wallet-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .bnb-action-pill {
+      height: 40px;
+      border-radius: 9px;
+      border: none;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .bnb-action-pill.primary {
+      background: var(--bnb-yellow);
+      color: #181A20;
+    }
+
+    .bnb-action-pill.secondary {
+      background: var(--bnb-card);
+      color: #EAECEF;
+    }
+
+    .asset-row {
+      background: var(--bnb-card);
+      border-radius: 11px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 9px;
+    }
+
+    .asset-right {
+      text-align: right;
+    }
+
+    .asset-amt {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .asset-usd {
+      font-size: 11.5px;
+      color: var(--bnb-muted);
+      margin-top: 2px;
+    }
+
+    /* Bottom App Nav */
+    .bottom-nav-bnb {
+      height: 56px;
+      background: #1E2026;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      padding: 6px 8px 8px;
+      flex-shrink: 0;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 10px;
+      color: #848E9C;
+      cursor: pointer;
+    }
+
+    .nav-item.active-bnb {
+      color: var(--bnb-yellow);
+      font-weight: 600;
+    }
+
+    .bottom-nav-abb {
+      height: 56px;
+      background: #ffffff;
+      border-top: 1px solid #E5E7EB;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 6px 8px 8px;
+      flex-shrink: 0;
+    }
+
+    .nav-item.active-abb {
+      color: var(--abb-blue);
+      font-weight: 600;
+    }
+
+    /* ABB Step 6 Home Card */
+    .abb-platinum-card {
+      background: linear-gradient(135deg, #E3EBF6 0%, #CBD8EC 100%);
+      border-radius: 16px;
+      padding: 15px;
+      position: relative;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .platinum-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .mini-visa-card {
+      width: 68px;
+      height: 42px;
+      background: linear-gradient(135deg, #6B7280, #374151);
+      border-radius: 6px;
+      padding: 5px 6px;
+      color: #fff;
+      font-size: 8px;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+
+    .abb-quick-btns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+      margin-top: 12px;
+    }
+
+    .abb-quick-btn {
+      background: var(--abb-blue);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 0;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .abb-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 8px 0 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .abb-see-all {
+      font-size: 11.5px;
+      font-weight: 500;
+      color: #6B7280;
+      cursor: pointer;
+    }
+
+    .abb-list-card {
+      background: #ffffff;
+      border-radius: 13px;
+      padding: 13px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="mobile-app-shell">
+    <!-- Top Bar: Only Deposit and Withdraw -->
+    <div class="mode-switcher-bar">
+      <button class="mode-btn active-deposit" id="tab-deposit" onclick="switchFlow('deposit')">
+        Deposit
+      </button>
+      <button class="mode-btn" id="tab-withdraw" onclick="switchFlow('withdraw')">
+        Withdraw
+      </button>
+    </div>
+
+    <!-- Main Interactive Phone Screen -->
+    <div class="phone-screen theme-bnb" id="phone-screen"></div>
+  </div>
+
+  <script>
+    const ICONS = {
+      binanceLogo: `
+        <svg width="18" height="18" viewBox="0 0 32 32" fill="none">
+          <path d="M16 4L11.1 8.9L13.9 11.7L16 9.6L18.1 11.7L20.9 8.9L16 4ZM8.9 11.1L4 16L8.9 20.9L11.7 18.1L9.6 16L11.7 13.9L8.9 11.1ZM23.1 11.1L20.3 13.9L22.4 16L20.3 18.1L23.1 20.9L28 16L23.1 11.1ZM16 13.2L13.2 16L16 18.8L18.8 16L16 13.2ZM11.1 23.1L16 28L20.9 23.1L18.1 20.3L16 22.4L13.9 20.3L11.1 23.1Z" fill="#FCD535"/>
+        </svg>`,
+      binanceCircle: `
+        <svg width="46" height="46" viewBox="0 0 44 44" fill="none">
+          <circle cx="22" cy="22" r="22" fill="#181A20"/>
+          <path d="M22 10L17.1 14.9L19.9 17.7L22 15.6L24.1 17.7L26.9 14.9L22 10ZM14.9 17.1L10 22L14.9 26.9L17.7 24.1L15.6 22L17.7 19.9L14.9 17.1ZM29.1 17.1L26.3 19.9L28.4 22L26.3 24.1L29.1 26.9L34 22L29.1 17.1ZM22 19.2L19.2 22L22 24.8L24.8 22L22 19.2ZM17.1 29.1L22 34L26.9 29.1L24.1 26.3L22 28.4L19.9 26.3L17.1 29.1Z" fill="#FCD535"/>
+        </svg>`,
+      abbLogoSm: `<span class="abb-logo-badge size-sm">ABB</span>`,
+      abbLogoMd: `<span class="abb-logo-badge size-md">ABB</span>`,
+      abbLogoLg: `<span class="abb-logo-badge size-lg">ABB</span>`,
+      azFlag: `
+        <svg width="24" height="18" viewBox="0 0 24 18" style="border-radius:3px;flex-shrink:0;">
+          <rect width="24" height="6" y="0" fill="#00B5E2"/>
+          <rect width="24" height="6" y="6" fill="#EF3340"/>
+          <rect width="24" height="6" y="12" fill="#509E2F"/>
+          <circle cx="11.5" cy="9" r="2.3" fill="#fff"/>
+          <circle cx="12.1" cy="9" r="1.8" fill="#EF3340"/>
+          <circle cx="13.7" cy="9" r="0.8" fill="#fff"/>
+        </svg>`,
+      usdt: `
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="16" fill="#26A17B"/>
+          <path d="M17.9 17.2V17.1C17.8 17.1 17.1 17.2 16 17.2C15 17.2 14.3 17.1 14.1 17.1V17.2C10.8 17 8.4 16.4 8.4 15.6C8.4 14.8 10.8 14.2 14.1 14V16.4C14.3 16.4 15 16.5 16.1 16.5C17.2 16.5 17.8 16.4 17.9 16.4V14C21.2 14.2 23.6 14.8 23.6 15.6C23.6 16.4 21.2 17 17.9 17.2ZM17.9 13.7V11.5H22.4V8.5H9.6V11.5H14.1V13.7C10.3 13.9 7.5 14.7 7.5 15.8C7.5 16.9 10.3 17.7 14.1 17.9V24.5H17.9V17.9C21.7 17.7 24.5 16.9 24.5 15.8C24.5 14.7 21.7 13.9 17.9 13.7Z" fill="white"/>
+        </svg>`,
+      btc: `
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="16" fill="#F7931A"/>
+          <path d="M21.8 14.2C22.1 12.3 20.6 11.3 18.7 10.6L19.3 8.1L17.8 7.7L17.2 10.1C16.8 10 16.4 9.9 16 9.8L16.6 7.4L15.1 7L14.5 9.5C14.2 9.4 13.9 9.3 13.6 9.2L11.5 8.7L11.1 10.3C11.1 10.3 12.2 10.6 12.2 10.6C12.8 10.8 12.9 11.2 12.9 11.5L12.1 14.6C12.2 14.6 12.3 14.7 12.4 14.7L12.1 14.6L11 19C10.9 19.2 10.6 19.5 10.1 19.4C10.1 19.4 9 19.1 9 19.1L8.3 20.9L10.3 21.4C10.7 21.5 11.1 21.6 11.4 21.7L10.8 24.2L12.3 24.6L12.9 22.1C13.3 22.2 13.7 22.3 14.1 22.4L13.5 24.9L15 25.3L15.6 22.8C18.2 23.3 20.1 23.1 20.9 20.8C21.6 18.9 20.9 17.8 19.5 17.1C20.5 16.9 21.5 16.2 21.8 14.2ZM18.3 19.8C17.8 21.8 14.6 20.7 13.5 20.4L14.3 17C15.4 17.3 18.8 17.8 18.3 19.8ZM18.8 14.1C18.4 15.9 15.7 15 14.8 14.8L15.5 11.7C16.4 11.9 19.3 12.3 18.8 14.1Z" fill="white"/>
+        </svg>`
+    };
+
+    /*
+     * step = 0 -> Initial Binance Wallet screen with Red Ring around either "Deposit" or "Withdraw"
+     * step = 1..6 -> The 6 steps of the selected flow
+     */
+    const state = {
+      flow: 'deposit',
+      step: 0,
+      depositMethod: 'abb',
+      withdrawMethod: 'abb',
+      depositAmount: 500,
+      withdrawAmount: 500,
+      pinDigits: 0,
+      bnbAznBalance: 500.00,
+      bnbAvailableForWithdraw: 2000.00,
+      abbAznBalance: 3500.00,
+      lastDepositAmt: 500.00,
+      lastWithdrawAmt: 500.00,
+      selectedDepositCardId: 'platinum',
+      selectedWithdrawCardId: 'platinum',
+      abbCards: [
+        {
+          id: 'platinum',
+          name: 'AZN Platinum',
+          network: 'VISA',
+          number: '•• 6882',
+          exp: '03/27',
+          initialBalance: 3000.00,
+          balance: 3000.00,
+          badgeBg: 'linear-gradient(135deg, #1B63F2, #1E40AF)'
+        },
+        {
+          id: 'tamkart',
+          name: 'TamKart Classic',
+          network: 'MC',
+          number: '•• 4419',
+          exp: '08/28',
+          initialBalance: 1250.00,
+          balance: 1250.00,
+          badgeBg: 'linear-gradient(135deg, #1F2937, #4B5563)'
+        },
+        {
+          id: 'miles',
+          name: 'ABB Miles',
+          network: 'VISA',
+          number: '•• 9104',
+          exp: '11/27',
+          initialBalance: 320.00,
+          balance: 320.00,
+          badgeBg: 'linear-gradient(135deg, #0284C7, #0369A1)'
+        }
+      ]
+    };
+
+    function getSelectedCard(flow) {
+      const id = flow === 'deposit' ? state.selectedDepositCardId : state.selectedWithdrawCardId;
+      return state.abbCards.find(c => c.id === id) || state.abbCards[0];
+    }
+
+    function renderCardSelectorHTML(flow) {
+      const selectedId = flow === 'deposit' ? state.selectedDepositCardId : state.selectedWithdrawCardId;
+      const reqAmount = flow === 'deposit' ? state.depositAmount : state.withdrawAmount;
+
+      const cardsHTML = state.abbCards.map(card => {
+        const isSelected = card.id === selectedId;
+        const isInsufficient = (flow === 'deposit') && isSelected && (card.balance < reqAmount);
+        return `
+          <div class="abb-card-option ${isSelected ? 'selected' : ''} ${isInsufficient ? 'insufficient' : ''}"
+               onclick="selectAbbCard('${flow}', '${card.id}')">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="abb-card-icon" style="background:${card.badgeBg};">
+                ${card.network}
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#111827;">${card.name}</div>
+                <div style="font-size:11px;color:#6B7280;margin-top:1px;">${card.network} ${card.number}</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;">
+              <div style="text-align:right;">
+                <div style="font-size:13px;font-weight:700;color:${isInsufficient ? '#ef4444' : '#111827'};">
+                  ${formatMoney(card.balance)} AZN
+                </div>
+                <div style="font-size:10px;color:#6B7280;">Balance</div>
+              </div>
+              <div class="abb-card-radio"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const activeCard = getSelectedCard(flow);
+      const hasCardError = (flow === 'deposit') && (activeCard.balance < reqAmount);
+
+      return `
+        <div class="abb-card-select-title">
+          ${flow === 'deposit' ? 'Select card for deposit' : 'Select card for withdrawal'}
+        </div>
+        <div class="abb-card-select-list">
+          ${cardsHTML}
+        </div>
+        ${hasCardError ? `
+          <div style="color:#ef4444;font-size:11.5px;font-weight:600;margin-bottom:8px;text-align:center;">
+            Insufficient balance on ${activeCard.name} (${formatMoney(activeCard.balance)} AZN).
+          </div>
+        ` : ''}
+      `;
+    }
+
+    function formatMoney(num) {
+      return Number(num || 0).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function renderStatusBar() {
+      return `
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="status-icons">
+            <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor">
+              <rect x="0" y="7" width="2.5" height="4" rx="0.8"/>
+              <rect x="4" y="5" width="2.5" height="6" rx="0.8"/>
+              <rect x="8" y="2.5" width="2.5" height="8.5" rx="0.8"/>
+              <rect x="12" y="0" width="2.5" height="11" rx="0.8"/>
+            </svg>
+            <svg width="14" height="11" viewBox="0 0 16 12" fill="currentColor">
+              <path d="M8 9.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-3.6-1.8a5.5 5.5 0 017.2 0l1.2-1.4a7.3 7.3 0 00-9.6 0l1.2 1.4zm-3-3.2a9.8 9.8 0 0113.2 0L16 3.1a11.7 11.7 0 00-16 0l1.4 1.4z"/>
+            </svg>
+            <svg width="22" height="11" viewBox="0 0 24 12" fill="currentColor">
+              <rect x="0.5" y="1" width="19" height="10" rx="2.5" stroke="currentColor" stroke-width="1" fill="none"/>
+              <rect x="2.5" y="3" width="15" height="6" rx="1.2" fill="currentColor"/>
+              <path d="M21 4v4a1.5 1.5 0 000-4z"/>
+            </svg>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBinanceWalletScreen(highlightMode) {
+      let aznBal = state.bnbAznBalance;
+      if (state.step === 0 && state.flow === 'deposit') {
+        aznBal = 0.00;
+      } else if (state.step === 0 && state.flow === 'withdraw') {
+        aznBal = state.bnbAvailableForWithdraw;
+      }
+
+      const aznUsd = aznBal * 0.58808;
+      const totalUsd = 13727.28 + aznUsd;
+      const totalAzn = totalUsd * 1.7;
+
+      const isDepositHighlighted = highlightMode === 'deposit';
+      const isWithdrawHighlighted = highlightMode === 'withdraw';
+
+      return `
+        ${renderStatusBar()}
+        <div class="app-header">
+          <div class="app-back" onclick="prevStep()">←</div>
+          <div class="app-header-center">
+            ${ICONS.binanceLogo}
+            <span style="color:#FCD535;font-size:13px;">BINANCE</span>
+          </div>
+          <div class="app-header-right"></div>
+        </div>
+        <div style="text-align:center;font-size:13.5px;font-weight:600;color:#EAECEF;margin-bottom:4px;">My Assets</div>
+        <div class="screen-body" style="padding-top:6px;">
+          <div class="bnb-balance-header">
+            <span style="font-size:12px;color:#848E9C;">Total Balance 👁</span>
+            <span class="badge-24h">+3.62% (24h)</span>
+          </div>
+          <div class="bnb-total-usd">$${formatMoney(totalUsd)}</div>
+          <div class="bnb-total-azn">≈ ₼${formatMoney(totalAzn)} AZN</div>
+
+          <div class="bnb-wallet-actions">
+            <button class="bnb-action-pill primary ${isDepositHighlighted ? 'red-ring-highlight' : ''}"
+                    onclick="startFlowFromWallet('deposit')">
+              Deposit
+            </button>
+            <button class="bnb-action-pill secondary ${isWithdrawHighlighted ? 'red-ring-highlight' : ''}"
+                    onclick="startFlowFromWallet('withdraw')">
+              Withdraw
+            </button>
+            <button class="bnb-action-pill secondary">
+              Convert
+            </button>
+          </div>
+
+          <div class="bnb-section-label" style="margin-top:0;">Fiat Balance</div>
+          <div class="asset-row" style="${state.step === 6 ? 'border:1px solid rgba(252,213,53,0.4);' : ''}">
+            <div class="method-left">
+              <div style="width:34px;height:34px;border-radius:50%;background:#2B3139;display:flex;align-items:center;justify-content:center;">
+                ${ICONS.azFlag}
+              </div>
+              <div>
+                <div style="font-size:14px;font-weight:700;color:#fff;">AZN</div>
+                <div style="font-size:11.5px;color:#848E9C;">Azerbaijani Manat</div>
+              </div>
+            </div>
+            <div class="asset-right">
+              <div class="asset-amt">${formatMoney(aznBal)}</div>
+              <div class="asset-usd">≈ $${formatMoney(aznUsd)}</div>
+            </div>
+          </div>
+
+          <div class="bnb-section-label">Crypto Holdings</div>
+          <div class="asset-row">
+            <div class="method-left">
+              ${ICONS.usdt}
+              <div>
+                <div style="font-size:14px;font-weight:700;color:#fff;">USDT</div>
+                <div style="font-size:11.5px;color:#848E9C;">Tether</div>
+              </div>
+            </div>
+            <div class="asset-right">
+              <div class="asset-amt">1,250.00</div>
+              <div class="asset-usd">$1,250.00</div>
+            </div>
+          </div>
+
+          <div class="asset-row">
+            <div class="method-left">
+              ${ICONS.btc}
+              <div>
+                <div style="font-size:14px;font-weight:700;color:#fff;">BTC</div>
+                <div style="font-size:11.5px;color:#848E9C;">Bitcoin</div>
+              </div>
+            </div>
+            <div class="asset-right">
+              <div class="asset-amt">0.085717</div>
+              <div class="asset-usd">$7,836.29</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-nav-bnb">
+          <div class="nav-item"><span>🏠</span><span>Home</span></div>
+          <div class="nav-item"><span>📊</span><span>Markets</span></div>
+          <div class="nav-item"><span>⇄</span><span>Trade</span></div>
+          <div class="nav-item"><span>📑</span><span>Futures</span></div>
+          <div class="nav-item active-bnb"><span>👛</span><span>Wallet</span></div>
+        </div>
+      `;
+    }
+
+    function renderAbbPinScreen() {
+      const dots = [1, 2, 3, 4].map(i =>
+        `<div class="pin-dot ${state.pinDigits >= i ? 'filled' : ''}"></div>`
+      ).join('');
+
+      const keys = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(k =>
+        `<button class="key-btn" onclick="pressPinKey(${k})">${k}</button>`
+      ).join('');
+
+      return `
+        ${renderStatusBar()}
+        <div class="app-header">
+          <div class="app-back" onclick="prevStep()">‹</div>
+          <div class="app-header-center">
+            ${ICONS.abbLogoSm}
+          </div>
+          <div class="app-header-right"></div>
+        </div>
+        <div class="screen-body" style="padding-top:20px;">
+          <div class="abb-card-title" style="font-size:18px;">Confirmation</div>
+          <div class="abb-card-subtitle" style="max-width:220px;margin:6px auto 0;line-height:1.4;">
+            Enter PIN code to confirm the transaction
+          </div>
+
+          <div class="pin-dots">${dots}</div>
+
+          <div class="keypad-grid">
+            ${keys}
+            <button class="key-btn key-ghost" onclick="clearPin()">Clear</button>
+            <button class="key-btn" onclick="pressPinKey(0)">0</button>
+            <button class="key-btn key-ghost" onclick="backspacePin()">⌫</button>
+          </div>
+          <div class="forgot-pin" onclick="autoFillPin()">Forgot PIN?</div>
+        </div>
+      `;
+    }
+
+    function buildScreenHTML(flow, step) {
+      if (step === 0) {
+        return renderBinanceWalletScreen(flow);
+      }
+
+      const amt = flow === 'deposit' ? state.depositAmount : state.withdrawAmount;
+      const formattedAmt = formatMoney(amt);
+
+      // --- FLOW 1: DEPOSIT ---
+      if (flow === 'deposit') {
+        if (step === 1) {
+          return `
+            ${renderStatusBar()}
+            <div class="app-header">
+              <div class="app-back" onclick="prevStep()">‹</div>
+              <div class="app-header-center">
+                ${ICONS.binanceLogo}
+                <span style="color:#FCD535;font-size:13px;">BINANCE</span>
+              </div>
+              <div class="app-header-right"></div>
+            </div>
+            <div class="screen-body">
+              <div class="bnb-page-title">Deposit</div>
+              <div class="bnb-subtitle">Choose a currency to deposit</div>
+
+              <div class="bnb-currency-box">
+                <div class="method-left">
+                  ${ICONS.azFlag}
+                  <div>
+                    <div style="font-size:14.5px;font-weight:700;color:#fff;">AZN</div>
+                    <div style="font-size:11.5px;color:#848E9C;">Azerbaijani Manat</div>
+                  </div>
+                </div>
+                <span style="color:#848E9C;font-size:14px;">⌄</span>
+              </div>
+
+              <div class="bnb-section-label">Select payment method</div>
+
+              <div class="bnb-method-card selected" style="cursor:default;">
+                <div class="method-left">
+                  ${ICONS.abbLogoMd}
+                  <div>
+                    <div class="method-title-row">
+                      <span>ABB Bank</span>
+                      <span class="badge-recommended">Recommended</span>
+                    </div>
+                    <div class="method-desc">Azerbaijani Manat</div>
+                  </div>
+                </div>
+                <div class="radio-circle"></div>
+              </div>
+
+              <div class="bnb-method-card" style="cursor:default;pointer-events:none;opacity:0.65;">
+                <div class="method-left">
+                  <div style="width:38px;height:38px;border-radius:8px;background:#2B3139;display:flex;align-items:center;justify-content:center;color:#94a3b8;">
+                    💳
+                  </div>
+                  <div>
+                    <div class="method-title-row"><span>Card payment</span></div>
+                    <div class="method-desc">Visa, Mastercard</div>
+                  </div>
+                </div>
+                <div class="radio-circle"></div>
+              </div>
+
+              <div class="bnb-method-card" style="cursor:default;pointer-events:none;opacity:0.65;">
+                <div class="method-left">
+                  <div style="width:38px;height:38px;border-radius:8px;background:#2B3139;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-weight:700;">
+                    •••
+                  </div>
+                  <div>
+                    <div class="method-title-row"><span>Other methods</span></div>
+                    <div class="method-desc">P2P, etc.</div>
+                  </div>
+                </div>
+                <div class="radio-circle"></div>
+              </div>
+            </div>
+            <div class="screen-footer">
+              <button class="btn-bnb-primary" onclick="nextStep()">Continue</button>
+            </div>
+          `;
+        }
+
+        if (step === 2) {
+          const isDepositInvalid = state.depositAmount < 10 || state.depositAmount > 50000;
+          return `
+            ${renderStatusBar()}
+            <div class="app-header">
+              <div class="app-back" onclick="prevStep()">‹</div>
+              <div class="app-header-center">
+                ${ICONS.binanceLogo}
+                <span style="color:#FCD535;font-size:13px;">BINANCE</span>
+              </div>
+              <div class="app-header-right"></div>
+            </div>
+            <div class="screen-body">
+              <div class="bnb-page-title">Deposit AZN</div>
+              <div class="bnb-subtitle">via ABB Bank</div>
+
+              <div class="bnb-amount-card" id="dep-amount-card" style="${isDepositInvalid ? 'border-color:#ef4444;' : ''}">
+                <div style="font-size:12px;color:#848E9C;">Amount</div>
+                <div class="amount-input-row">
+                  <input type="number" class="amount-input" value="${state.depositAmount}" min="10" max="50000"
+                         oninput="updateAmount('deposit', this.value)" />
+                  <div class="amount-currency-tag">
+                    ${ICONS.azFlag}
+                    <span>AZN</span>
+                  </div>
+                </div>
+                <div class="amount-meta-row">
+                  <span>Min 10 AZN - Max 50,000 AZN ⓘ</span>
+                </div>
+                <div id="dep-error-msg" style="display:${isDepositInvalid ? 'block' : 'none'};color:#ef4444;font-size:11.5px;font-weight:600;margin-top:8px;">
+                  Please enter an amount between 10 AZN and 50,000 AZN.
+                </div>
+              </div>
+
+              <div class="bnb-summary-card">
+                <div class="summary-row">
+                  <span style="color:#848E9C;">You will receive</span>
+                  <span style="color:#fff;font-weight:700;font-size:14.5px;" id="dep-receive-val">${formattedAmt} AZN</span>
+                </div>
+                <div style="font-size:12px;color:#848E9C;margin-top:4px;">
+                  on your Binance fiat balance
+                </div>
+              </div>
+            </div>
+            <div class="screen-footer">
+              <button class="btn-bnb-primary" id="dep-continue-btn"
+                      style="${isDepositInvalid ? 'opacity:0.4;cursor:not-allowed;' : ''}"
+                      onclick="nextStep()">Continue</button>
+            </div>
+          `;
+        }
+
+        if (step === 3) {
+          const activeCard = getSelectedCard('deposit');
+          const isInsufficient = activeCard.balance < state.depositAmount;
+          return `
+            ${renderStatusBar()}
+            <div class="app-header">
+              <div class="app-back" onclick="prevStep()">‹</div>
+              <div class="app-header-center">
+                ${ICONS.abbLogoSm}
+              </div>
+              <div class="app-header-right" style="color:#374151;">EN</div>
+            </div>
+            <div class="screen-body">
+              <div class="abb-white-card" style="padding:16px 14px;">
+                <div class="abb-transfer-logos" style="margin-bottom:10px;">
+                  ${ICONS.binanceCircle}
+                  <span style="color:#9CA3AF;font-size:18px;font-weight:600;">→</span>
+                  ${ICONS.abbLogoLg}
+                </div>
+                <div class="abb-card-title">Payment Request</div>
+                <div class="abb-card-subtitle" style="margin-bottom:12px;">Top up Binance Global</div>
+
+                ${renderCardSelectorHTML('deposit')}
+
+                <div class="abb-divider" style="margin:10px 0;"></div>
+                <div class="abb-kv-row">
+                  <span class="abb-kv-label">Recipient</span>
+                  <span class="abb-kv-val">Binance Global</span>
+                </div>
+                <div class="abb-kv-row">
+                  <span class="abb-kv-label">Amount</span>
+                  <span class="abb-kv-val">${formattedAmt} AZN</span>
+                </div>
+                <div class="abb-kv-row">
+                  <span class="abb-kv-label">Commission</span>
+                  <span class="abb-kv-val">0.00 AZN</span>
+                </div>
+                <div class="abb-divider" style="margin:10px 0;"></div>
+                <div class="abb-kv-row abb-kv-total">
+                  <span style="color:#111827;">Total</span>
+                  <span style="color:#111827;">${formattedAmt} AZN</span>
+                </div>
+              </div>
+            </div>
+            <div class="screen-footer">
+              <button class="btn-abb-primary"
+                      style="${isInsufficient ? 'opacity:0.4;cursor:not-allowed;' : ''}"
+                      onclick="nextStep()">Continue</button>
+            </div>
+          `;
+        }
+
+        if (step === 4) {
+          return renderAbbPinScreen();
+        }
+
+        if (step === 5) {
+          const activeCard = getSelectedCard('deposit');
+          return `
+            ${renderStatusBar()}
+            <div class="app-header">
+              <div class="app-back" onclick="prevStep()">‹</div>
+              <div class="app-header-center">
+                ${ICONS.abbLogoSm}
+              </div>
+              <div class="app-header-right"></div>
+            </div>
+            <div class="screen-body">
+              <div class="abb-white-card">
+                <div class="success-check">
+                  <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </div>
+                <div class="abb-card-title">Payment Completed</div>
+                <div class="abb-card-subtitle">Funds successfully sent to Binance Global</div>
+
+                <div class="abb-divider"></div>
+                <div class="abb-kv-row">
+                  <span class="abb-kv-label">Amount</span>
+                  <span class="abb-kv-val">${formattedAmt} AZN</span>
+                </div>
+                <div class="abb-kv-row">
+                  <span class="abb-kv-label">Paid from Card</span>
+                  <span class="abb-kv-val">${activeCard.name} (${activeCard.number})</span>
+                </div>
+                <div class="abb-kv-row">
+                  <span class="abb-kv-label">Recipient</span>
+                  <span class="abb-kv-val">Binance Global</span>
+                </div>
+                <div class="abb-kv-row">
+                  <span class="abb-kv-label">Date & Time</span>
+                  <span class="abb-kv-val">15 Oct 2026, 11:18</span>
+                </div>
+                <div class="abb-kv-row">
+                  <span class="abb-kv-label">Transaction ID</span>
+                  <span class="abb-kv-val">#4587263910</span>
+                </div>
+              </div>
+            </div>
+            <div class="screen-footer">
+              <button class="btn-abb-primary" onclick="completeDepositAndGoStep6()">Done</button>
+            </div>
+          `;
+        }
+
+        if (step === 6) {
+          return renderBinanceWalletScreen(null);
+        }
+      }
+
+      // --- FLOW 2: WITHDRAW ---
+      if (flow === 'withdraw') {
+        if (step === 1) {
+          return `
+            ${renderStatusBar()}
+            <div class="app-header">
+              <div class="app-back" onclick="prevStep()">‹</div>
+              <div class="app-header-center">
+                ${ICONS.binanceLogo}
+                <span style="color:#FCD535;font-size:13px;">BINANCE</span>
+              </div>
+              <div class="app-header-right"></div>
+            </div>
+            <div class="screen-body">
+              <div class="bnb-page-title">Withdraw</div>
+              <div class="bnb-subtitle">Choose currency to withdraw</div>
+
+              <div class="bnb-currency-box">
+                <div class="method-left">
+                  ${ICONS.azFlag}
+                  <div>
+                    <div style="font-size:14.5px;font-weight:700;color:#fff;">AZN</div>
+                    <div style="font-size:11.5px;color:#848E9C;">Azerbaijani Manat</div>
+                  </div>
+                </div>
+                <span style="color:#848E9C;font-size:14px;">⌄</span>
+              </div>
+
+              <div class="bnb-section-label">Select withdrawal method</div>
+
+              <div class="bnb-method-card selected" style="cursor:default;">
+                <div class="method-left">
+                  ${ICONS.abbLogoMd}
+                  <div>
+                    <div class="method-title-row">
+                      <span>ABB Bank</span>
+                      <span class="badge-recommended">Recommended</span>
+                    </div>
+                    <div class="method-desc">Bank transfer (AZN)</div>
+                  </div>
+                </div>
+                <div class="radio-circle"></div>
+              </div>
+
+              <div class="bnb-method-card" style="cursor:default;pointer-events:none;opacity:0.65;">
+                <div class="method-left">
+                  <div style="width:38px;height:38px;border-radius:8px;background:#2B3139;display:flex;align-items:center;justify-content:center;color:#94a3b8;">
+                    💳
+                  </div>
+                  <div>
+                    <div class="method-title-row"><span>Card withdrawal</span></div>
+                  </div>
+                </div>
+                <div class="radio-circle"></div>
+              </div>
+
+              <div class="bnb-method-card" style="cursor:default;pointer-events:none;opacity:0.65;">
+                <div class="method-left">
+                  <div style="width:38px;height:38px;border-radius:8px;background:#2B3139;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-weight:700;">
+                    •••
+                  </div>
+                  <div>
+                    <div class="method-title-row"><span>Other methods</span></div>
+                  </div>
+                </div>
+                <div class="radio-circle"></div>
+              </div>
+            </div>
+            <div class="screen-footer">
+              <button class="btn-bnb-primary" onclick="nextStep()">Continue</button>
+            </div>
+          `;
+        }
+
+        if (step === 2) {
+          const isOverBalance = state.withdrawAmount > state.bnbAvailableForWithdraw || state.withdrawAmount <= 0;
+          return `
+            ${renderStatusBar()}
+            <div class="app-header">
+              <div class="app-back" onclick="prevStep()">‹</div>
+              <div class="app-header-center">
+                ${ICONS.binanceLogo}
+                <span style="color:#FCD535;font-size:13px;">BINANCE</span>
+              </div>
+              <div class="app-header-right"></div>
+            </div>
+            <div class="screen-body">
+              <div class="bnb-page-title">Withdraw AZN</div>
+              <div class="bnb-subtitle">via ABB Bank</div>
+
+              <div class="bnb-amount-card" id="wit-amount-card" style="${isOverBalance ? 'border-color:#ef4444;' : ''}">
+                <div style="font-size:12px;color:#848E9C;">Amount</div>
+                <div class="amount-input-row">
+                  <input type="number" class="amount-input" value="${state.withdrawAmount}" min="10" max="2000"
+                         oninput="updateAmount('withdraw', this.value)" />
+                  <div class="amount-currency-tag">
+                    ${ICONS.azFlag}
+                    <span>AZN</span>
+                  </div>
+                </div>
+                <div class="amount-meta-row">
+                  <span>Available: ${formatMoney(state.bnbAvailableForWithdraw)} AZN</span>
+                  <button class="btn-max" onclick="setPresetAmount('withdraw', ${state.bnbAvailableForWithdraw})">Max</button>
+                </div>
+                <div id="wit-error-msg" style="display:${isOverBalance ? 'block' : 'none'};color:#ef4444;font-size:11.5px;font-weight:600;margin-top:8px;">
+                  ${state.withdrawAmount <= 0 ? 'Please enter a valid amount.' : 'Amount exceeds available balance (2,000.00 AZN).'}
+                </div>
+              </div>
+
+              <div class="bnb-summary-card">
+                <div class="summary-row">
+                  <span style="color:#848E9C;">You will receive</span>
+                  <span style="color:#fff;font-weight:700;font-size:14.5px;" id="wit-receive-val">${formattedAmt} AZN</span>
+                </div>
+                <div style="font-size:12px;color:#848E9C;margin-top:4px;">
+                  on your ABB account
+                </div>
+                <div style="height:1px;background:rgba(255,255,255,0.07);margin:12px 0;"></div>
+                <div class="summary-row">
+                  <span style="color:#848E9C;">Fee</span>
+                  <span style="color:#fff;font-weight:600;">0.00 AZN</span>
+                </div>
+              </div>
+            </div>
+            <div class="screen-footer">
+              <button class="btn-bnb-primary" id="wit-continue-btn"
+                      style="${isOverBalance ? 'opacity:0.4;cursor:not-allowed;' : ''}"
+                      onclick="nextStep()">Continue</button>
+            </div>
+          `;
+        }
+
+        if (step === 3) {
+          return `
+            ${renderStatusBar()}
+            <div class="app-header">
+              <div class="app-back" onclick="prevStep()">‹</div>
+              <div class="app-header-center">
+                ${ICONS.abbLogoSm}
+              </div>
+              <div class="app-header-right" style="color:#374151;">EN</div>
+            </div>
+            <div class="screen-body">
+              <div class="abb-white-card" style="padding:16px 14px;">
+                <div class="abb-transfer-logos" style="margin-bottom:10px;">
+                  ${ICONS.binanceCircle}
+                  <span style="color:#9CA3AF;font-size:18px;font-weight:600;">→</span>
+                  ${ICONS.abbLogoLg}
+                </div>
+                <div class="abb-card-title">Receive Request</div>
+                <div class="abb-card-subtitle" style="margin-bottom:12px;">Withdrawal from Binance Global</div>
+
+                ${renderCardSelectorHTML('withdraw')}
+
+                <div class="abb-divider" style="margin:10px 0;"></div>
+                <div class="abb-kv-row">
+                  <span class="abb-kv-label">Amount</span>
+                  <span class="abb-kv-val">${formattedAmt} AZN</span>
+                </div>
+                <div class="abb-kv-row">
+                  <span class="abb-kv-label">Commission</span>
+                  <span class="abb-kv-val">0.00 AZN</span>
+                </div>
+                <div class="abb-divider" style="margin:10px 0;"></div>
+                <div class="abb-kv-row abb-kv-total">
+                  <span style="color:#111827;">Total</span>
+                  <span style="color:#111827;">${formattedAmt} AZN</span>
+                </div>
+
+                <div class="abb-info-box">
+                  <span style="font-size:15px;color:#1B63F2;">ℹ️</span>
+                  <span>Funds will be credited to your selected ABB card.</span>
+                </div>
+              </div>
+            </div>
+            <div class="screen-footer">
+              <button class="btn-abb-primary" onclick="nextStep()">Continue</button>
+            </div>
+          `;
+        }
+
+        if (step === 4) {
+          return renderAbbPinScreen();
+        }
+
+        if (step === 5) {
+          const activeCard = getSelectedCard('withdraw');
+          return `
+            ${renderStatusBar()}
+            <div class="app-header">
+              <div class="app-back" onclick="prevStep()">‹</div>
+              <div class="app-header-center">
+                ${ICONS.abbLogoSm}
+              </div>
+              <div class="app-header-right"></div>
+            </div>
+            <div class="screen-body">
+              <div class="abb-white-card">
+                <div class="success-check">
+                  <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </div>
+                <div class="abb-card-title">Funds Credited</div>
+                <div class="abb-card-subtitle">Withdrawal from Binance Global completed successfully.</div>
+
+                <div class="abb-divider"></div>
+                <div class="abb-kv-row">
+                  <span class="abb-kv-label">Amount</span>
+                  <span class="abb-kv-val">${formattedAmt} AZN</span>
+                </div>
+                <div class="abb-kv-row">
+                  <span class="abb-kv-label">Credited to Card</span>
+                  <span class="abb-kv-val">${activeCard.name} (${activeCard.number})</span>
+                </div>
+                <div class="abb-kv-row">
+                  <span class="abb-kv-label">Sender</span>
+                  <span class="abb-kv-val">Binance Global</span>
+                </div>
+                <div class="abb-kv-row">
+                  <span class="abb-kv-label">Date & Time</span>
+                  <span class="abb-kv-val">15 Oct 2026, 11:22</span>
+                </div>
+                <div class="abb-kv-row">
+                  <span class="abb-kv-label">Transaction ID</span>
+                  <span class="abb-kv-val">#4587264123</span>
+                </div>
+              </div>
+            </div>
+            <div class="screen-footer">
+              <button class="btn-abb-primary" onclick="completeWithdrawAndGoStep6()">Done</button>
+            </div>
+          `;
+        }
+
+        if (step === 6) {
+          const activeCard = getSelectedCard('withdraw');
+          return `
+            ${renderStatusBar()}
+            <div class="app-header">
+              <div style="display:flex;align-items:center;">
+                ${ICONS.abbLogoSm}
+              </div>
+              <div class="app-header-right" style="color:#374151;font-size:15px;">
+                <span>🔔</span>
+                <span>⚙️</span>
+              </div>
+            </div>
+            <div class="screen-body" style="padding-top:6px;">
+              <!-- Selected Card Widget -->
+              <div class="abb-platinum-card">
+                <div class="platinum-top">
+                  <div>
+                    <div style="font-size:10px;font-weight:700;color:#374151;letter-spacing:0.04em;text-transform:uppercase;">${activeCard.name}</div>
+                    <div style="font-size:18px;font-weight:800;color:#111827;margin-top:8px;letter-spacing:2px;">• • • • &nbsp; ⋒</div>
+                  </div>
+                  <div class="mini-visa-card">
+                    <span>${activeCard.network}</span>
+                    <span style="font-size:6.5px;opacity:0.8;text-align:right;">Debit</span>
+                  </div>
+                </div>
+                <div style="font-size:11px;font-weight:600;color:#374151;display:flex;align-items:center;gap:8px;">
+                  <span>${activeCard.network} ${activeCard.number}</span>
+                  <span style="opacity:0.4;">|</span>
+                  <span>${activeCard.exp}</span>
+                  <span style="opacity:0.4;">|</span>
+                  <span>G Pay</span>
+                </div>
+                <div class="abb-quick-btns">
+                  <button class="abb-quick-btn" onclick="switchFlow('deposit')">+ Deposit</button>
+                  <button class="abb-quick-btn">💳 Pay</button>
+                  <button class="abb-quick-btn">⇄ Transfer</button>
+                </div>
+              </div>
+
+              <!-- Accounts Section -->
+              <div class="abb-section-head">
+                <span>Accounts</span>
+                <span class="abb-see-all">See All ›</span>
+              </div>
+              <div class="abb-list-card">
+                <div class="method-left">
+                  ${ICONS.abbLogoMd}
+                  <div>
+                    <div style="font-size:11.5px;color:#6B7280;">Main account (${activeCard.name})</div>
+                    <div style="font-size:15.5px;font-weight:800;color:#111827;">${formatMoney(activeCard.balance)} AZN</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recent Transactions -->
+              <div class="abb-section-head">
+                <span>Recent transactions</span>
+                <span class="abb-see-all">See All ›</span>
+              </div>
+              <div class="abb-list-card">
+                <div class="method-left">
+                  <div style="width:38px;height:38px;border-radius:50%;background:#181A20;display:flex;align-items:center;justify-content:center;">
+                    ${ICONS.binanceLogo}
+                  </div>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;color:#111827;">From Binance Global</div>
+                    <div style="font-size:11px;color:#6B7280;margin-top:2px;">15 Oct 2026, 11:22 • ${activeCard.number}</div>
+                  </div>
+                </div>
+                <div style="font-size:13.5px;font-weight:700;color:#16A34A;">
+                  +${formatMoney(state.lastWithdrawAmt)} AZN
+                </div>
+              </div>
+            </div>
+
+            <div class="bottom-nav-abb">
+              <div class="nav-item active-abb"><span>🏠</span><span>Home</span></div>
+              <div class="nav-item"><span>◎</span><span>Payments</span></div>
+              <div class="nav-item"><span>⊞</span><span>Products</span></div>
+              <div class="nav-item"><span>•••</span><span>More</span></div>
+            </div>
+          `;
+        }
+      }
+      return '';
+    }
+
+    function renderAll() {
+      document.getElementById('tab-deposit').className =
+        'mode-btn ' + (state.flow === 'deposit' ? 'active-deposit' : '');
+      document.getElementById('tab-withdraw').className =
+        'mode-btn ' + (state.flow === 'withdraw' ? 'active-withdraw' : '');
+
+      const screenEl = document.getElementById('phone-screen');
+      const isBnbTheme = (
+        state.step === 0 ||
+        state.step === 1 ||
+        state.step === 2 ||
+        (state.flow === 'deposit' && state.step === 6)
+      );
+      screenEl.className = 'phone-screen ' + (isBnbTheme ? 'theme-bnb' : 'theme-abb');
+      screenEl.innerHTML = buildScreenHTML(state.flow, state.step);
+    }
+
+    function selectAbbCard(flow, cardId) {
+      if (flow === 'deposit') {
+        state.selectedDepositCardId = cardId;
+      } else {
+        state.selectedWithdrawCardId = cardId;
+      }
+      renderAll();
+    }
+
+    function switchFlow(flowName) {
+      state.flow = flowName;
+      state.step = 0;
+      state.pinDigits = 0;
+      // Reset card balances to initial formal balances for fresh flow testing
+      state.abbCards.forEach(c => { c.balance = c.initialBalance; });
+      renderAll();
+    }
+
+    function startFlowFromWallet(targetFlow) {
+      state.flow = targetFlow;
+      state.step = 1;
+      state.pinDigits = 0;
+      state.abbCards.forEach(c => { c.balance = c.initialBalance; });
+      renderAll();
+    }
+
+    function nextStep() {
+      if (state.flow === 'deposit' && state.step === 2) {
+        if (state.depositAmount < 10 || state.depositAmount > 50000) {
+          return;
+        }
+      }
+      if (state.flow === 'deposit' && state.step === 3) {
+        const activeCard = getSelectedCard('deposit');
+        if (activeCard.balance < state.depositAmount) {
+          return; // Block execution if selected card has insufficient balance
+        }
+      }
+      if (state.flow === 'withdraw' && state.step === 2) {
+        if (state.withdrawAmount > state.bnbAvailableForWithdraw || state.withdrawAmount <= 0) {
+          return; // Block execution when amount exceeds available balance
+        }
+      }
+      if (state.step < 6) {
+        state.step++;
+        state.pinDigits = 0;
+        renderAll();
+      }
+    }
+
+    function prevStep() {
+      if (state.step > 0) {
+        state.step--;
+        state.pinDigits = 0;
+        renderAll();
+      }
+    }
+
+    function updateAmount(flow, val) {
+      const parsed = Math.max(0, parseFloat(val) || 0);
+      if (flow === 'deposit') {
+        state.depositAmount = parsed;
+        const el = document.getElementById('dep-receive-val');
+        if (el) el.textContent = `${formatMoney(parsed)} AZN`;
+
+        const isInvalid = parsed < 10 || parsed > 50000;
+        const errEl = document.getElementById('dep-error-msg');
+        const cardEl = document.getElementById('dep-amount-card');
+        const btnEl = document.getElementById('dep-continue-btn');
+        if (errEl) errEl.style.display = isInvalid ? 'block' : 'none';
+        if (cardEl) cardEl.style.borderColor = isInvalid ? '#ef4444' : 'rgba(255, 255, 255, 0.06)';
+        if (btnEl) {
+          btnEl.style.opacity = isInvalid ? '0.4' : '1';
+          btnEl.style.cursor = isInvalid ? 'not-allowed' : 'pointer';
+        }
+      } else {
+        state.withdrawAmount = parsed;
+        const el = document.getElementById('wit-receive-val');
+        if (el) el.textContent = `${formatMoney(parsed)} AZN`;
+
+        const isOver = parsed > state.bnbAvailableForWithdraw || parsed <= 0;
+        const errEl = document.getElementById('wit-error-msg');
+        const cardEl = document.getElementById('wit-amount-card');
+        const btnEl = document.getElementById('wit-continue-btn');
+        if (errEl) {
+          errEl.style.display = isOver ? 'block' : 'none';
+          errEl.textContent = parsed <= 0
+            ? 'Please enter a valid amount.'
+            : 'Amount exceeds available balance (2,000.00 AZN).';
+        }
+        if (cardEl) {
+          cardEl.style.borderColor = isOver ? '#ef4444' : 'rgba(255, 255, 255, 0.06)';
+        }
+        if (btnEl) {
+          btnEl.style.opacity = isOver ? '0.4' : '1';
+          btnEl.style.cursor = isOver ? 'not-allowed' : 'pointer';
+        }
+      }
+    }
+
+    function setPresetAmount(flow, val) {
+      if (flow === 'deposit') state.depositAmount = val;
+      else state.withdrawAmount = val;
+      renderAll();
+    }
+
+    function pressPinKey(digit) {
+      if (state.pinDigits < 4) {
+        state.pinDigits++;
+        renderAll();
+        if (state.pinDigits === 4) {
+          setTimeout(() => {
+            state.pinDigits = 0;
+            nextStep();
+          }, 220);
+        }
+      }
+    }
+
+    function backspacePin() {
+      if (state.pinDigits > 0) {
+        state.pinDigits--;
+        renderAll();
+      }
+    }
+
+    function clearPin() {
+      state.pinDigits = 0;
+      renderAll();
+    }
+
+    function autoFillPin() {
+      state.pinDigits = 4;
+      renderAll();
+      setTimeout(() => {
+        state.pinDigits = 0;
+        nextStep();
+      }, 220);
+    }
+
+    function completeDepositAndGoStep6() {
+      state.lastDepositAmt = state.depositAmount || 500;
+      const activeCard = getSelectedCard('deposit');
+      activeCard.balance = Math.max(0, activeCard.initialBalance - state.lastDepositAmt);
+      state.bnbAznBalance = state.lastDepositAmt;
+      state.step = 6;
+      renderAll();
+    }
+
+    function completeWithdrawAndGoStep6() {
+      state.lastWithdrawAmt = state.withdrawAmount || 500;
+      const activeCard = getSelectedCard('withdraw');
+      activeCard.balance = activeCard.initialBalance + state.lastWithdrawAmt;
+      state.abbAznBalance = activeCard.balance;
+      state.step = 6;
+      renderAll();
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (state.step === 4 && e.key >= '0' && e.key <= '9') {
+        pressPinKey(parseInt(e.key, 10));
+      } else if (state.step === 4 && e.key === 'Backspace') {
+        backspacePin();
+      }
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>
